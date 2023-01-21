@@ -1,0 +1,25 @@
+---
+- name: check usage of systemd as an init system
+  assert:
+    that: ansible_service_mgr == 'systemd'
+    msg: "This module only works with systemd"
+
+- name: check playbook configs
+  assert:
+    that:
+      - oauth2_proxy_config is defined
+    fail_msg: "oauth2-proxy playbook configuration error. Please check your ansible variables and role. DOC: {{ __oauth2_proxy_docs_url }}"
+    success_msg: "oauth2-proxy playbook configuration is OK."
+
+- name: Get checksums
+  delegate_to: localhost
+  block:
+    - name: "Get checksum list"
+      set_fact:
+        __oauth2_proxy_checksums: "{{ lookup('url', __oauth2_proxy_checksum_url, wantlist=True) | list }}"
+      run_once: '{{ oauth2_proxy_get_checksum_once }}'
+
+    - name: "Get checksum value"
+      set_fact:
+        __oauth2_proxy_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __oauth2_proxy_checksums }}"
