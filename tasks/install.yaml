@@ -1,0 +1,83 @@
+---
+- name: Create system group
+  group:
+    name: '{{ oauth2_proxy_group }}'
+    system: true
+    state: present
+
+- name: Create system user
+  user:
+    name: '{{ oauth2_proxy_user }}'
+    system: true
+    shell: '/usr/sbin/nologin'
+    group: '{{ oauth2_proxy_group }}'
+    createhome: false
+    home: '{{ oauth2_proxy_install_dir }}'
+
+- name: Create installation directory
+  file:
+    path: '{{ oauth2_proxy_install_dir }}'
+    state: directory
+    mode: '0750'
+    owner: '{{ oauth2_proxy_user }}'
+    group: '{{ oauth2_proxy_group }}'
+    recurse: true
+
+- name: Installing
+  block:
+    - name: Download software archive
+      get_url:
+        url: '{{ __oauth2_proxy_release_url }}'
+        dest: '/tmp/{{ __oauth2_proxy_release_name }}.tar.gz'
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Unpack software archive
+      unarchive:
+        src: '/tmp/{{ __oauth2_proxy_release_name }}.tar.gz'
+        dest: '/tmp/'
+        copy: false
+      check_mode: false
+
+    - name: Get sha256 checksum for binary file
+      stat:
+        path: '/tmp/{{ __oauth2_proxy_release_name }}/{{ __oauth2_proxy_binary_name }}'
+        get_checksum: true
+        checksum_algorithm: 'sha256'
+      register: oauth2_binary_file_stat
+
+    - name: Check binary file checksum
+      assert:
+        that:
+          - oauth2_binary_file_stat.stat.checksum ==  __oauth2_proxy_checksum
+        fail_msg: '/tmp/{{ __oauth2_proxy_release_name }}/{{ __oauth2_proxy_binary_name }} checksum fail.'
+        success_msg: '/tmp/{{ __oauth2_proxy_release_name }}/{{ __oauth2_proxy_binary_name }} checksum is OK.'
+
+    - name: Copy binary file
+      copy:
+        src: '/tmp/{{ __oauth2_proxy_release_name }}/{{ __oauth2_proxy_binary_name }}'
+        remote_src: true
+        dest: '{{ oauth2_proxy_install_dir }}/{{ __oauth2_proxy_binary_name }}'
+        owner: '{{ oauth2_proxy_user }}'
+        group: '{{ oauth2_proxy_group }}'
+        mode: '0750'
+      ignore_errors: '{{ ansible_check_mode }}'
+      check_mode: false
+
+- name: Create systemd service unit
+  template:
+    src: oauth2-proxy.service.j2
+    dest: '/etc/systemd/system/{{ oauth2_proxy_service_name }}.service'
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart oauth2-proxy service
+
+- name: Enable systemd service
+  systemd:
+    name: '{{ oauth2_proxy_service_name }}.service'
+    enabled: true

@@ -1,0 +1,13 @@
+{% for k,v in oauth2_proxy_config.items() | sort() %}
+{% if v == True %}
+{{ k }} = true
+{% elif v == False %}
+{{ k }} = false
+{% elif v is iterable and v is not string and v | length <= 0 %}
+{{ k }} = []
+{% elif v is iterable and v is not string and v | length > 0 %}
+{{ k }} = {{ v }}
+{% else %}
+{{ k }} = "{{ v }}"
+{% endif %}
+{% endfor %}

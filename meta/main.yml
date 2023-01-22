@@ -1,0 +1,29 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: oauth2_proxy
+  namespace: ysa
+  author: YouSysAdmin
+  description: Install OAuth2-proxy
+  company: "YouSysAdmin.com"
+  license: "license (BSD, MIT)"
+  min_ansible_version: '2.4'
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - auth
+    - oauth
+    - system
+    - web

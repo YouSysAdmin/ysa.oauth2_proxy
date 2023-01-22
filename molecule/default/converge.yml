@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    oauth2_proxy_config:
+      http_address: 'http://127.0.0.1:9000'
+      email_domains: [ '*' ]
+      cookie_secret: 'vtaRa5trtzrPuONlPwN_dOZQnALlloYKdNoGCD18-Ok='
+  tasks:
+    - name: "Include ysa.oauth2_proxy"
+      include_role:
+        name: "ysa.oauth2_proxy"

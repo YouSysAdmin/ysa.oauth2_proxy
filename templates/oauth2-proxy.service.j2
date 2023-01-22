@@ -1,0 +1,20 @@
+[Unit]
+Description={{ oauth2_proxy_service_name }}
+After=network.service
+
+[Service]
+Type=simple
+User={{ oauth2_proxy_user }}
+Group={{ oauth2_proxy_group }}
+Environment=PATH="/bin:/usr/bin/:/usr/local/bin:{{ oauth2_proxy_install_dir }}:$PATH"
+ExecStart=oauth2-proxy --config {{ oauth2_proxy_config_path }}
+ExecReload=/bin/kill -TSTP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+TimeoutSec=120
+SyslogIdentifier={{ oauth2_proxy_service_name }}
+RestartSec=1
+TimeoutStartSec=5m
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

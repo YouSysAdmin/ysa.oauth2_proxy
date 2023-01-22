@@ -1,0 +1,11 @@
+---
+- name: Create oauth2-proxy config file
+  template:
+    src: 'oauth2-proxy.conf.j2'
+    dest: '{{ oauth2_proxy_config_path }}'
+    mode: '0640'
+    owner: '{{ oauth2_proxy_user }}'
+    group: '{{ oauth2_proxy_group }}'
+    backup: '{{ oauth2_proxy_backup_config_before_change }}'
+  notify:
+    - Restart oauth2-proxy service
